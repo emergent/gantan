@@ -135,12 +135,31 @@ impl<'a> Roulette<Gene<'a>> for CityRoulette<'a> {
         let r: f64 = rng.gen();
         let fit_val = r * self.sum;
 
-        for (g, f) in &self.inner {
-            if fit_val <= *f {
-                return g.clone();
+        let len = self.inner.len();
+        let mut window = len / 4;
+        let mut idx = len / 2;
+        //print!("{} -> ", idx);
+        loop {
+            let (_, val) = self.inner[idx];
+            if fit_val > val {
+                if window == 0 {
+                    idx += 1
+                } else {
+                    idx = std::cmp::min(idx + window + 1, len - 1);
+                }
+            } else if idx == 0 || fit_val > self.inner[idx - 1].1 {
+                //println!("{}", idx);
+                return self.inner[idx].0.clone();
+            } else {
+                if window == 0 {
+                    idx = idx - 1;
+                } else {
+                    idx = idx - window;
+                }
             }
+            window /= 2;
+            //print!("{} -> ", idx);
         }
-        self.inner[self.inner.len() - 1].0.clone()
     }
 }
 
