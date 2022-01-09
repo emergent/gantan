@@ -1,0 +1,39 @@
+# ---- BASIC ----
+
+[tasks.watch]
+description = "Watch files and recompile the project on change"
+run_task = [
+    {name = ["clippy", "build", "test"]}
+]
+watch = true
+
+# ---- BUILD ----
+
+[tasks.build]
+command = "cargo"
+args = ["build"]
+
+[tasks.build_release]
+command = "cargo"
+args = ["build", "--release"]
+
+# ---- LINT ----
+
+[tasks.clippy]
+description = "Lint with Clippy"
+install_crate = { rustup_component_name = "clippy", binary = "cargo-clippy", test_arg = "--help" }
+command = "cargo"
+args = ["clippy", "--all-targets", "--", "-D", "clippy::all"]
+
+[tasks.fmt]
+description = "Format with rustfmt"
+install_crate = { rustup_component_name = "rustfmt", binary = "rustfmt", test_arg = "-V" }
+command = "cargo"
+args = ["fmt"]
+
+
+# ---- TEST ----
+
+[tasks.test]
+command = "cargo"
+args = ["test", "--", "--show-output"]
