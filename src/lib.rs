@@ -147,35 +147,42 @@ impl Trace {
         println!("[dump]");
         println!("len = {}", len);
         println!(
-            "selection : {:10} us",
-            self.selection.iter().sum::<u128>() / len as u128
+            "selection : {:6} us, total {:6} ms",
+            self.selection.iter().sum::<u128>() / len as u128,
+            self.selection.iter().sum::<u128>() / 1000
         );
 
         println!(
-            "  reset   : {:10} us",
-            self.selection_reset.iter().sum::<u128>() / len as u128
+            "  reset   : {:6} us, total {:6} ms",
+            self.selection_reset.iter().sum::<u128>() / len as u128,
+            self.selection_reset.iter().sum::<u128>() / 1000
         );
 
         println!(
-            "  choose  : {:10} us",
-            self.selection_choose.iter().sum::<u128>() / len as u128
+            "  choose  : {:6} us, total {:6} ms",
+            self.selection_choose.iter().sum::<u128>() / len as u128,
+            self.selection_choose.iter().sum::<u128>() / 1000
         );
 
         println!(
-            "crossover : {:10} us",
-            self.crossover.iter().sum::<u128>() / len as u128
+            "crossover : {:6} us, total {:6} ms",
+            self.crossover.iter().sum::<u128>() / len as u128,
+            self.crossover.iter().sum::<u128>() / 1000
         );
         println!(
-            "mutation  : {:10} us",
-            self.mutation.iter().sum::<u128>() / len as u128
+            "mutation  : {:6} us, total {:6} ms",
+            self.mutation.iter().sum::<u128>() / len as u128,
+            self.mutation.iter().sum::<u128>() / 1000
         );
         println!(
-            "population: {:10} us",
-            self.population.iter().sum::<u128>() / len as u128
+            "population: {:6} us, total {:6} ms",
+            self.population.iter().sum::<u128>() / len as u128,
+            self.population.iter().sum::<u128>() / 1000
         );
         println!(
-            "inspection: {:10} us",
-            self.inspection.iter().sum::<u128>() / len as u128
+            "inspection: {:6} us, total {:6} ms",
+            self.inspection.iter().sum::<u128>() / len as u128,
+            self.inspection.iter().sum::<u128>() / 1000
         );
     }
 }
