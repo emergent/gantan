@@ -1,4 +1,5 @@
 use rand::prelude::*;
+use std::collections::HashMap;
 use std::time::Instant;
 
 pub struct Simulator<G, I, R>
@@ -13,7 +14,7 @@ where
     mutation_rate: f64,
     selector: R,
     rng: ThreadRng,
-    trace: Trace,
+    stat: Stat,
 }
 
 impl<G, I, R> Simulator<G, I, R>
@@ -36,7 +37,7 @@ where
             mutation_rate,
             selector,
             rng: rand::thread_rng(),
-            trace: Trace::default(),
+            stat: Stat::default(),
         }
     }
 
@@ -46,59 +47,42 @@ where
         for i in 0.. {
             self.population = self.step_generation();
 
-            let start = Instant::now();
-            let ret = self.inspector.inspect(i, &self.population);
-            let end = start.elapsed();
-            self.trace.inspection.push(end.as_micros());
-
-            if !ret {
+            if !self.inspector.inspect(i, &self.population) {
                 break;
             };
         }
 
-        self.trace.dump();
+        self.stat.dump();
     }
 
     fn step_generation(&mut self) -> Population<G> {
-        let start = Instant::now();
-        let selection_result = self.select_pairs();
-        let end = start.elapsed();
-        self.trace.selection.push(end.as_micros());
+        macro_rules! rec {
+            ($tag: expr, $blk: stmt) => {{
+                let start = Instant::now();
+                let ret = { $blk };
+                let end = start.elapsed();
+                self.stat.record($tag, end.as_micros());
+                ret
+            }};
+        }
 
-        let start = Instant::now();
-        let crossover_result = self.crossover(selection_result);
-        let end = start.elapsed();
-        self.trace.crossover.push(end.as_micros());
-
-        let start = Instant::now();
-        let mutation_result = self.mutate(crossover_result);
-        let end = start.elapsed();
-        self.trace.mutation.push(end.as_micros());
-
-        let start = Instant::now();
-        let p = Population::from(mutation_result);
-        let end = start.elapsed();
-        self.trace.population.push(end.as_micros());
+        let selection_result = rec!("selection", self.select_pairs());
+        let crossover_result = rec!("crossover", self.crossover(selection_result));
+        let mutation_result = rec!("mutation", self.mutate(crossover_result));
+        let p = rec!("population", Population::from(mutation_result));
 
         p
     }
 
     fn select_pairs(&mut self) -> Vec<(G, G)> {
-        let start = Instant::now();
         self.selector.reset(&self.population.inner);
-        let end = start.elapsed();
-        self.trace.selection_reset.push(end.as_micros());
-
         let mut v = vec![];
 
-        let start = Instant::now();
         for _ in 0..self.population.inner.len() / 2 {
             let g1 = self.selector.choose();
             let g2 = self.selector.choose();
             v.push((g1, g2));
         }
-        let end = start.elapsed();
-        self.trace.selection_choose.push(end.as_micros());
 
         v
     }
@@ -131,59 +115,30 @@ where
 }
 
 #[derive(Default)]
-struct Trace {
-    selection: Vec<u128>,
-    selection_reset: Vec<u128>,
-    selection_choose: Vec<u128>,
-    crossover: Vec<u128>,
-    mutation: Vec<u128>,
-    population: Vec<u128>,
-    inspection: Vec<u128>,
+struct Stat {
+    inner: HashMap<String, Vec<u128>>,
 }
 
-impl Trace {
+impl Stat {
+    fn record(&mut self, tag: &str, value: u128) {
+        let v = self.inner.entry(tag.to_string()).or_insert_with(Vec::new);
+        v.push(value);
+    }
+
     fn dump(&self) {
-        let len = self.selection.len();
         println!("[dump]");
-        println!("len = {}", len);
-        println!(
-            "selection : {:6} us, total {:6} ms",
-            self.selection.iter().sum::<u128>() / len as u128,
-            self.selection.iter().sum::<u128>() / 1000
-        );
-
-        println!(
-            "  reset   : {:6} us, total {:6} ms",
-            self.selection_reset.iter().sum::<u128>() / len as u128,
-            self.selection_reset.iter().sum::<u128>() / 1000
-        );
-
-        println!(
-            "  choose  : {:6} us, total {:6} ms",
-            self.selection_choose.iter().sum::<u128>() / len as u128,
-            self.selection_choose.iter().sum::<u128>() / 1000
-        );
-
-        println!(
-            "crossover : {:6} us, total {:6} ms",
-            self.crossover.iter().sum::<u128>() / len as u128,
-            self.crossover.iter().sum::<u128>() / 1000
-        );
-        println!(
-            "mutation  : {:6} us, total {:6} ms",
-            self.mutation.iter().sum::<u128>() / len as u128,
-            self.mutation.iter().sum::<u128>() / 1000
-        );
-        println!(
-            "population: {:6} us, total {:6} ms",
-            self.population.iter().sum::<u128>() / len as u128,
-            self.population.iter().sum::<u128>() / 1000
-        );
-        println!(
-            "inspection: {:6} us, total {:6} ms",
-            self.inspection.iter().sum::<u128>() / len as u128,
-            self.inspection.iter().sum::<u128>() / 1000
-        );
+        for (k, v) in &self.inner {
+            let len = v.len() as u128;
+            let sum = v.into_iter().sum::<u128>();
+            if len > 0 {
+                println!(
+                    "{}\t: average {:6} us,\ttotal {:6} ms",
+                    k,
+                    sum / len,
+                    sum / 1000
+                );
+            }
+        }
     }
 }
 
