@@ -167,8 +167,8 @@ struct Ins;
 
 impl Inspector<Gene<'_>> for Ins {
     fn inspect(&mut self, generation: usize, _population: &Population<Gene>) -> bool {
-        if let Some(g) = _population.get_best() {
-            if generation % 100 == 0 {
+        if generation % 100 == 0 {
+            if let Some(g) = _population.get_best() {
                 println!(
                     "len: {:.3}, fitness: {:.3}, {:?}",
                     g.decode().measure_distance(),
