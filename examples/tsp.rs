@@ -38,6 +38,7 @@ impl<'a> Pheno<'a> {
         Self { cities, indice }
     }
 
+    #[allow(unused)]
     fn measure_distance(&self) -> f64 {
         let mut total = 0.0;
         let len = self.cities.len();
@@ -63,8 +64,7 @@ impl<'a> GenoType for Gene<'a> {
     type PhenoType = Pheno<'a>;
 
     fn fitness(&self) -> Self::Fitness {
-        let pheno = self.decode();
-        OrderedFloat::from(100000.0 / pheno.measure_distance())
+        OrderedFloat::from(100000.0 / self.measure_distance())
     }
 
     fn decode(&self) -> Self::PhenoType {
@@ -109,6 +109,37 @@ impl<'a> GenoType for Gene<'a> {
             g1.gene[i] = g2.gene[i];
             g2.gene[i] = *tmp_item;
         }
+    }
+}
+
+impl<'a> Gene<'a> {
+    fn measure_distance(&self) -> f64 {
+        let mut total = 0.0;
+        let mut cities = self.cities.to_owned();
+        let len = self.gene.len();
+
+        let mut p0 = (0, 0);
+        let mut pb = (0, 0);
+        for i in 0..len {
+            let p = cities.remove(self.gene[i]);
+
+            if i == 0 {
+                p0 = p;
+            } else {
+                let from = pb;
+                let to = p;
+                total += (((from.0 - to.0).pow(2) + (from.1 - to.1).pow(2)) as f64).sqrt();
+            }
+
+            if i == len - 1 {
+                let from = p;
+                let to = p0;
+                total += (((from.0 - to.0).pow(2) + (from.1 - to.1).pow(2)) as f64).sqrt();
+            }
+            pb = p;
+        }
+
+        total
     }
 }
 
@@ -171,7 +202,7 @@ impl Inspector<Gene<'_>> for Ins {
             if let Some(g) = _population.get_best() {
                 println!(
                     "len: {:.3}, fitness: {:.3}, {:?}",
-                    g.decode().measure_distance(),
+                    g.measure_distance(),
                     g.fitness(),
                     g.decode().indice
                 );
