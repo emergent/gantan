@@ -4,20 +4,20 @@ use rand::prelude::*;
 
 struct Pheno<'a> {
     cities: &'a [(i32, i32)],
-    indice: Vec<usize>,
+    indices: Vec<usize>,
 }
 
 impl<'a> PhenoType for Pheno<'a> {
     type GenoType = Gene<'a>;
 
     fn encode(&self) -> Self::GenoType {
-        let mut base: Vec<usize> = (0..self.indice.len()).into_iter().collect();
-        let mut gene = vec![0; self.indice.len()];
+        let mut base: Vec<usize> = (0..self.indices.len()).into_iter().collect();
+        let mut gene = vec![0; self.indices.len()];
 
-        for (i, gene_idx) in gene.iter_mut().enumerate().take(self.indice.len()) {
+        for (i, gene_idx) in gene.iter_mut().enumerate().take(self.indices.len()) {
             let mut idx = 0;
             for b in &base {
-                if *b == self.indice[i] {
+                if *b == self.indices[i] {
                     break;
                 }
                 idx += 1;
@@ -35,7 +35,10 @@ impl<'a> PhenoType for Pheno<'a> {
 
 impl<'a> Pheno<'a> {
     fn new(cities: &'a [(i32, i32)], indice: Vec<usize>) -> Self {
-        Self { cities, indice }
+        Self {
+            cities,
+            indices: indice,
+        }
     }
 
     #[allow(unused)]
@@ -44,8 +47,8 @@ impl<'a> Pheno<'a> {
         let len = self.cities.len();
 
         for i in 0..len {
-            let from = self.cities[(self.indice[i]) as usize];
-            let to = self.cities[(self.indice[(i + 1) % len]) as usize];
+            let from = self.cities[(self.indices[i]) as usize];
+            let to = self.cities[(self.indices[(i + 1) % len]) as usize];
             total += (((from.0 - to.0).pow(2) + (from.1 - to.1).pow(2)) as f64).sqrt();
         }
 
@@ -78,7 +81,7 @@ impl<'a> GenoType for Gene<'a> {
 
         Pheno {
             cities: self.cities,
-            indice,
+            indices: indice,
         }
     }
 
@@ -169,7 +172,6 @@ impl<'a> Roulette<Gene<'a>> for CityRoulette<'a> {
         let len = self.inner.len();
         let mut window = len / 4;
         let mut idx = len / 2;
-        //print!("{} -> ", idx);
         loop {
             let (_, val) = self.inner[idx];
             if fit_val > val {
@@ -179,7 +181,6 @@ impl<'a> Roulette<Gene<'a>> for CityRoulette<'a> {
                     idx = std::cmp::min(idx + window + 1, len - 1);
                 }
             } else if idx == 0 || fit_val > self.inner[idx - 1].1 {
-                //println!("{}", idx);
                 return self.inner[idx].0.clone();
             } else {
                 if window == 0 {
@@ -189,7 +190,6 @@ impl<'a> Roulette<Gene<'a>> for CityRoulette<'a> {
                 }
             }
             window /= 2;
-            //print!("{} -> ", idx);
         }
     }
 }
@@ -204,7 +204,7 @@ impl Inspector<Gene<'_>> for Ins {
                     "len: {:.3}, fitness: {:.3}, {:?}",
                     g.measure_distance(),
                     g.fitness(),
-                    g.decode().indice
+                    g.decode().indices
                 );
             }
         }
