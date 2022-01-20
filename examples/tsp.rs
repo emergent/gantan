@@ -73,15 +73,15 @@ impl<'a> GenoType for Gene<'a> {
     fn decode(&self) -> Self::PhenoType {
         let mut base: Vec<usize> = (0..self.gene.len()).into_iter().collect();
 
-        let mut indice = vec![];
+        let mut indices = vec![];
         for i in 0..self.gene.len() {
             let p = base.remove((self.gene[i]) as usize);
-            indice.push(p);
+            indices.push(p);
         }
 
         Pheno {
             cities: self.cities,
-            indices: indice,
+            indices,
         }
     }
 
