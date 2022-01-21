@@ -169,28 +169,19 @@ impl<'a> Roulette<Gene<'a>> for CityRoulette<'a> {
         let r: f64 = rng.gen();
         let fit_val = r * self.sum;
 
-        let len = self.inner.len();
-        let mut window = len / 4;
-        let mut idx = len / 2;
-        loop {
-            let (_, val) = self.inner[idx];
-            if fit_val > val {
-                if window == 0 {
-                    idx += 1
-                } else {
-                    idx = std::cmp::min(idx + window + 1, len - 1);
-                }
-            } else if idx == 0 || fit_val > self.inner[idx - 1].1 {
-                return self.inner[idx].0.clone();
+        // binary search
+        let mut low = 0;
+        let mut high = self.inner.len();
+
+        while low != high {
+            let mid = (low + high) / 2;
+            if self.inner[mid].1 <= fit_val {
+                low = mid + 1;
             } else {
-                if window == 0 {
-                    idx = idx - 1;
-                } else {
-                    idx = idx - window;
-                }
+                high = mid;
             }
-            window /= 2;
         }
+        self.inner[low].0.clone()
     }
 }
 
