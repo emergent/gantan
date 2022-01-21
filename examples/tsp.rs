@@ -201,7 +201,7 @@ impl Inspector<Gene<'_>> for Ins {
         if generation % 100 == 0 {
             if let Some(g) = _population.get_best() {
                 println!(
-                    "len: {:.3}, fitness: {:.3}, {:?}",
+                    "distance: {:.3}, fitness: {:.3}, {:?}",
                     g.measure_distance(),
                     g.fitness(),
                     g.decode().indices
@@ -255,6 +255,6 @@ fn main() {
     let inspector = Ins;
     let selector = CityRoulette::default();
 
-    let mut simulator = Simulator::new(Population::from(p), inspector, 0.8, 0.2, selector);
+    let mut simulator = Simulator::new(Population::from(p), inspector, 0.9, 0.05, selector);
     simulator.start();
 }
