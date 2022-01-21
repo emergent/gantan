@@ -1,5 +1,9 @@
 # gantan
 
-`gantan` will be a library of the genetic algorithm written in Rust.
+`gantan` is a library of the Genetic Algorithm (GA) written in Rust.
 
-It's under development.
+## example usage:
+
+```shell
+cargo run --release --bin tsp
+```
