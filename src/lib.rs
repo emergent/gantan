@@ -2,7 +2,7 @@
 //! The crate provides a generic simulator that evolves a population using
 //! selection, crossover and mutation. You supply your own gene and phenotype
 //! types by implementing a small set of traits.
-//! **Traits**
+//! ## Traits
 //! - `GenoType`: describes a genome and how to mutate, crossover and evaluate it.
 //! - `PhenoType`: converts a phenotype to its gene representation.
 //! - `Inspector`: observes each generation and can stop the simulation.
