@@ -1,8 +1,8 @@
+use crate::{GenoType, Roulette};
 use rand::prelude::*;
 use rand::rngs::StdRng;
 use rand::SeedableRng;
 use std::cell::RefCell;
-use crate::{GenoType, Roulette};
 
 /// Fitness proportionate selection (roulette wheel)
 pub struct FitnessProportionate<G: GenoType>
@@ -83,6 +83,7 @@ pub struct TournamentSelector<G: GenoType> {
     size: usize,
     population: Vec<G>,
     rng: RefCell<StdRng>,
+    _marker: std::marker::PhantomData<G>,
 }
 
 impl<G: GenoType> TournamentSelector<G> {
@@ -106,7 +107,9 @@ impl<G: GenoType> TournamentSelector<G> {
 }
 
 impl<G: GenoType> Default for TournamentSelector<G> {
-    fn default() -> Self { Self::new(2) }
+    fn default() -> Self {
+        Self::new(2)
+    }
 }
 
 impl<G> Roulette<G> for TournamentSelector<G>
@@ -125,7 +128,7 @@ where
             let g = self.population[idx].clone();
             let f = g.fitness();
             match &best {
-                Some((_, bf)) if *bf >= f => {},
+                Some((_, bf)) if *bf >= f => {}
                 _ => best = Some((g, f)),
             }
         }
@@ -170,7 +173,9 @@ where
     G: GenoType,
     G::Fitness: Into<f64> + Copy,
 {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl<G> Roulette<G> for RankSelector<G>
@@ -180,7 +185,8 @@ where
 {
     fn reset(&mut self, population: &[(G, G::Fitness)]) {
         self.inner.clear();
-        let mut items: Vec<(G, G::Fitness)> = population.iter().map(|(g, f)| (g.clone(), *f)).collect();
+        let mut items: Vec<(G, G::Fitness)> =
+            population.iter().map(|(g, f)| (g.clone(), *f)).collect();
         items.sort_by(|(_, f1), (_, f2)| f1.partial_cmp(f2).unwrap_or(std::cmp::Ordering::Equal));
         let mut acc = 0.0;
         for (rank, (g, _)) in items.into_iter().enumerate() {
@@ -207,4 +213,3 @@ where
         self.inner[low.min(self.inner.len() - 1)].0.clone()
     }
 }
-
