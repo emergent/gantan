@@ -11,7 +11,7 @@ impl GenoType for FG {
     fn fitness(&self) -> Self::Fitness { self.0 }
     fn decode(&self) -> Self::PhenoType { self.0 }
     fn mutate(&mut self) {}
-    fn crossover(_g1:&mut Self,_g2:&mut Self){}
+    fn crossover(_g1: &mut Self, _g2: &mut Self) {}
 }
 
 #[test]
