@@ -1,4 +1,6 @@
 use rand::prelude::*;
+use rand::rngs::StdRng;
+use rand::SeedableRng;
 use std::collections::HashMap;
 use std::time::Instant;
 
@@ -13,7 +15,7 @@ where
     crossover_rate: f64,
     mutation_rate: f64,
     selector: R,
-    rng: ThreadRng,
+    rng: StdRng,
     stat: Stat,
 }
 
@@ -36,7 +38,7 @@ where
             crossover_rate,
             mutation_rate,
             selector,
-            rng: rand::thread_rng(),
+            rng: StdRng::from_entropy(),
             stat: Stat::default(),
         }
     }
@@ -111,6 +113,85 @@ where
         }
 
         children
+    }
+}
+
+pub struct SimulatorBuilder<G, I, R>
+where
+    G: GenoType,
+    I: Inspector<G>,
+    R: Roulette<G>,
+{
+    population: Option<Population<G>>,
+    inspector: Option<I>,
+    crossover_rate: Option<f64>,
+    mutation_rate: Option<f64>,
+    selector: Option<R>,
+    seed: Option<u64>,
+}
+
+impl<G, I, R> SimulatorBuilder<G, I, R>
+where
+    G: GenoType,
+    I: Inspector<G>,
+    R: Roulette<G>,
+{
+    pub fn new() -> Self {
+        Self {
+            population: None,
+            inspector: None,
+            crossover_rate: None,
+            mutation_rate: None,
+            selector: None,
+            seed: None,
+        }
+    }
+
+    pub fn with_population(&mut self, population: Population<G>) -> &mut Self {
+        self.population = Some(population);
+        self
+    }
+
+    pub fn with_inspector(&mut self, inspector: I) -> &mut Self {
+        self.inspector = Some(inspector);
+        self
+    }
+
+    pub fn with_crossover_rate(&mut self, rate: f64) -> &mut Self {
+        self.crossover_rate = Some(rate);
+        self
+    }
+
+    pub fn with_mutation_rate(&mut self, rate: f64) -> &mut Self {
+        self.mutation_rate = Some(rate);
+        self
+    }
+
+    pub fn with_selector(&mut self, selector: R) -> &mut Self {
+        self.selector = Some(selector);
+        self
+    }
+
+    pub fn with_seed(&mut self, seed: u64) -> &mut Self {
+        self.seed = Some(seed);
+        self
+    }
+
+    pub fn build(self) -> Simulator<G, I, R> {
+        let rng = match self.seed {
+            Some(s) => StdRng::seed_from_u64(s),
+            None => StdRng::from_entropy(),
+        };
+
+        Simulator {
+            population: self.population.expect("population is required"),
+            inspector: self.inspector.expect("inspector is required"),
+            crossover_rate: self.crossover_rate.expect("crossover_rate is required"),
+            mutation_rate: self.mutation_rate.expect("mutation_rate is required"),
+            selector: self.selector.expect("selector is required"),
+            rng,
+            stat: Stat::default(),
+        }
     }
 }
 

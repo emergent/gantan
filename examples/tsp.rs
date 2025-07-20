@@ -1,4 +1,4 @@
-use gantan::{GenoType, Inspector, PhenoType, Population, Roulette, Simulator};
+use gantan::{GenoType, Inspector, PhenoType, Population, Roulette, SimulatorBuilder};
 use ordered_float::OrderedFloat;
 use rand::prelude::*;
 
@@ -246,6 +246,13 @@ fn main() {
     let inspector = Ins;
     let selector = CityRoulette::default();
 
-    let mut simulator = Simulator::new(Population::from(p), inspector, 0.9, 0.05, selector);
+    let mut builder = SimulatorBuilder::new();
+    builder
+        .with_population(Population::from(p))
+        .with_inspector(inspector)
+        .with_crossover_rate(0.9)
+        .with_mutation_rate(0.05)
+        .with_selector(selector);
+    let mut simulator = builder.build();
     simulator.start();
 }
