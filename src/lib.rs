@@ -1,6 +1,8 @@
 use rand::prelude::*;
 use rand::rngs::StdRng;
 use rand::SeedableRng;
+
+pub mod selection;
 use std::collections::HashMap;
 use std::time::Instant;
 
@@ -282,3 +284,5 @@ pub trait Roulette<G: GenoType> {
     fn reset(&mut self, population: &[(G, G::Fitness)]);
     fn choose(&self) -> G;
 }
+
+pub use selection::{FitnessProportionate, RankSelector, TournamentSelector};
