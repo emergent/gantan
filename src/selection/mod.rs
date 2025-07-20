@@ -182,7 +182,7 @@ where
     fn reset(&mut self, population: &[(G, G::Fitness)]) {
         self.inner.clear();
         let mut items: Vec<(G, G::Fitness)> = population.iter().map(|(g, f)| (g.clone(), *f)).collect();
-        items.sort_by_key(|(_, f)| *f);
+        items.sort_by(|(_, f1), (_, f2)| f1.partial_cmp(f2).unwrap_or(std::cmp::Ordering::Equal));
         let mut acc = 0.0;
         for (rank, (g, _)) in items.into_iter().enumerate() {
             let weight = (rank + 1) as f64; // 1..n
