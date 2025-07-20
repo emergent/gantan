@@ -51,8 +51,10 @@ impl PhenoType for MyPhenotype {
 struct MyInspector;
 
 impl Inspector<MyGene> for MyInspector {
+    // The `inspect` method is called at the end of each generation. Returning `true` continues
+    // the simulation, while returning `false` stops it. Here, we stop the simulation after 100 generations.
     fn inspect(&mut self, generation: usize, _pop: &Population<MyGene>) -> bool {
-        true
+        generation < 100
     }
 }
 ```
