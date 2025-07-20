@@ -73,9 +73,7 @@ where
         let selection_result = rec!("selection", self.select_pairs());
         let crossover_result = rec!("crossover", self.crossover(selection_result));
         let mutation_result = rec!("mutation", self.mutate(crossover_result));
-        let p = rec!("population", Population::from(mutation_result));
-
-        p
+        rec!("population", Population::from(mutation_result))
     }
 
     fn select_pairs(&mut self) -> Vec<(G, G)> {
@@ -99,11 +97,7 @@ where
             }
         }
 
-        parents
-            .into_iter()
-            .map(|(g1, g2)| [g1, g2])
-            .flatten()
-            .collect()
+        parents.into_iter().flat_map(|(g1, g2)| [g1, g2]).collect()
     }
 
     fn mutate(&mut self, mut children: Vec<G>) -> Vec<G> {
@@ -197,6 +191,17 @@ where
     }
 }
 
+impl<G, I, R> Default for SimulatorBuilder<G, I, R>
+where
+    G: GenoType,
+    I: Inspector<G>,
+    R: Roulette<G>,
+{
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 #[derive(Default)]
 struct Stat {
     inner: HashMap<String, Vec<u128>>,
@@ -204,7 +209,7 @@ struct Stat {
 
 impl Stat {
     fn record(&mut self, tag: &str, value: u128) {
-        let v = self.inner.entry(tag.to_string()).or_insert_with(Vec::new);
+        let v = self.inner.entry(tag.to_string()).or_default();
         v.push(value);
     }
 
@@ -212,7 +217,7 @@ impl Stat {
         println!("[dump]");
         for (k, v) in &self.inner {
             let len = v.len() as u128;
-            let sum = v.into_iter().sum::<u128>();
+            let sum = v.iter().sum::<u128>();
             if len > 0 {
                 println!(
                     "{}\t: average {:6} us,\ttotal {:6} ms",
