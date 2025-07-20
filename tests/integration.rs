@@ -99,6 +99,9 @@ impl Roulette<TestGene> for FixedRoulette {
                 high = mid;
             }
         }
+        if low == self.inner.len() {
+            low = self.inner.len() - 1;
+        }
         self.inner[low].0.clone()
     }
 }
