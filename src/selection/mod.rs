@@ -83,7 +83,6 @@ pub struct TournamentSelector<G: GenoType> {
     size: usize,
     population: Vec<G>,
     rng: RefCell<StdRng>,
-    _marker: std::marker::PhantomData<G>,
 }
 
 impl<G: GenoType> TournamentSelector<G> {
