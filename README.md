@@ -81,3 +81,20 @@ After configuring the builder you obtain a `Simulator`. The `start` method begin
 simulator.start();
 ```
 
+### Parallel fitness evaluation
+
+`gantan` can compute individual fitness values in parallel when building a `Population`.
+Enable the optional `parallel` feature which pulls in the `rayon` crate:
+
+```toml
+[dependencies]
+gantan = { version = "0.0.1", features = ["parallel"] }
+```
+
+To see the difference, run the `bench_population` example with and without the feature:
+
+```bash
+cargo run --release --example bench_population         # serial
+cargo run --release --features parallel --example bench_population  # parallel
+```
+
