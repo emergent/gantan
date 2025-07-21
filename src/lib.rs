@@ -55,6 +55,7 @@ where
         }
     }
 
+    #[cfg(not(feature = "parallel"))]
     pub fn start(&mut self) {
         println!("started: population = {}", self.population.len());
 
@@ -69,7 +70,49 @@ where
         self.stat.dump();
     }
 
+    #[cfg(feature = "parallel")]
+    pub fn start(&mut self)
+    where
+        G: Send,
+        G::Fitness: Send,
+    {
+        println!("started: population = {}", self.population.len());
+
+        for i in 0.. {
+            self.population = self.step_generation();
+
+            if !self.inspector.inspect(i, &self.population) {
+                break;
+            };
+        }
+
+        self.stat.dump();
+    }
+
+    #[cfg(not(feature = "parallel"))]
     fn step_generation(&mut self) -> Population<G> {
+        macro_rules! rec {
+            ($tag: expr, $blk: stmt) => {{
+                let start = Instant::now();
+                let ret = { $blk };
+                let end = start.elapsed();
+                self.stat.record($tag, end.as_micros());
+                ret
+            }};
+        }
+
+        let selection_result = rec!("selection", self.select_pairs());
+        let crossover_result = rec!("crossover", self.crossover(selection_result));
+        let mutation_result = rec!("mutation", self.mutate(crossover_result));
+        rec!("population", Population::from(mutation_result))
+    }
+
+    #[cfg(feature = "parallel")]
+    fn step_generation(&mut self) -> Population<G>
+    where
+        G: Send,
+        G::Fitness: Send,
+    {
         macro_rules! rec {
             ($tag: expr, $blk: stmt) => {{
                 let start = Instant::now();
@@ -265,6 +308,7 @@ where
     }
 }
 
+#[cfg(not(feature = "parallel"))]
 impl<G: GenoType> From<Vec<G>> for Population<G> {
     fn from(v: Vec<G>) -> Self {
         Self {
@@ -275,6 +319,26 @@ impl<G: GenoType> From<Vec<G>> for Population<G> {
                     (g, f)
                 })
                 .collect(),
+        }
+    }
+}
+
+#[cfg(feature = "parallel")]
+impl<G> From<Vec<G>> for Population<G>
+where
+    G: GenoType + Send,
+    G::Fitness: Send,
+{
+    fn from(v: Vec<G>) -> Self {
+        use rayon::prelude::*;
+        Self {
+            inner: v
+                .into_par_iter()
+                .map(|g| {
+                    let f = g.fitness();
+                    (g, f)
+                })
+                .collect::<Vec<_>>(),
         }
     }
 }
