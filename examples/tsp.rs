@@ -118,13 +118,15 @@ impl<'a> GenoType for Gene<'a> {
 impl<'a> Gene<'a> {
     fn measure_distance(&self) -> f64 {
         let mut total = 0.0;
-        let mut cities = self.cities.to_owned();
         let len = self.gene.len();
+        // indices representing the remaining cities, mirroring decode()
+        let mut remaining: Vec<usize> = (0..len).collect();
 
         let mut p0 = (0, 0);
         let mut pb = (0, 0);
         for i in 0..len {
-            let p = cities.remove(self.gene[i]);
+            let idx = remaining.remove(self.gene[i]);
+            let p = self.cities[idx];
 
             if i == 0 {
                 p0 = p;
