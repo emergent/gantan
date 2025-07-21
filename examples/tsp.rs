@@ -183,6 +183,9 @@ impl<'a> Roulette<Gene<'a>> for CityRoulette<'a> {
                 high = mid;
             }
         }
+        if low == self.inner.len() {
+            low = self.inner.len() - 1;
+        }
         self.inner[low].0.clone()
     }
 }

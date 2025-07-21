@@ -150,3 +150,17 @@ fn weighted_selector_deterministic() {
     assert_eq!(g2, TestGene(2));
     assert_eq!(g3, TestGene(3));
 }
+
+#[test]
+fn weighted_selector_upper_bound() {
+    let g1 = TestGene(1);
+    let g2 = TestGene(2);
+    let draws = vec![1.0];
+    let mut sel = FixedRoulette::new(draws);
+    sel.reset(&[
+        (g1.clone(), g1.fitness()),
+        (g2.clone(), g2.fitness()),
+    ]);
+    let g = sel.choose();
+    assert_eq!(g, TestGene(2));
+}
