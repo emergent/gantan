@@ -117,33 +117,25 @@ impl<'a> GenoType for Gene<'a> {
 
 impl<'a> Gene<'a> {
     fn measure_distance(&self) -> f64 {
-        let mut total = 0.0;
         let len = self.gene.len();
-        // indices representing the remaining cities, mirroring decode()
+        // Track remaining indices like `decode` does so we avoid cloning `cities`.
         let mut remaining: Vec<usize> = (0..len).collect();
 
-        let mut p0 = (0, 0);
-        let mut pb = (0, 0);
-        for i in 0..len {
-            let idx = remaining.remove(self.gene[i]);
-            let p = self.cities[idx];
+        // Starting city
+        let start_idx = remaining.remove(self.gene[0]);
+        let mut prev = self.cities[start_idx];
+        let start = prev;
 
-            if i == 0 {
-                p0 = p;
-            } else {
-                let from = pb;
-                let to = p;
-                total += (((from.0 - to.0).pow(2) + (from.1 - to.1).pow(2)) as f64).sqrt();
-            }
-
-            if i == len - 1 {
-                let from = p;
-                let to = p0;
-                total += (((from.0 - to.0).pow(2) + (from.1 - to.1).pow(2)) as f64).sqrt();
-            }
-            pb = p;
+        let mut total = 0.0;
+        for gene_idx in self.gene.iter().skip(1) {
+            let idx = remaining.remove(*gene_idx);
+            let curr = self.cities[idx];
+            total += (((prev.0 - curr.0).pow(2) + (prev.1 - curr.1).pow(2)) as f64).sqrt();
+            prev = curr;
         }
 
+        // close the loop back to the start
+        total += (((prev.0 - start.0).pow(2) + (prev.1 - start.1).pow(2)) as f64).sqrt();
         total
     }
 }
